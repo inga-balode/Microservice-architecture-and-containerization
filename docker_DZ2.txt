@@ -1,0 +1,65 @@
+Last login: Fri Feb 25 22:33:03 on ttys000
+
+The default interactive shell is now zsh.
+To update your account to use zsh, please run `chsh -s /bin/zsh`.
+For more details, please visit https://support.apple.com/kb/HT208050.
+Ingas-MacBook-Pro:~ inga$ cd Desktop/gb_docker
+Ingas-MacBook-Pro:gb_docker inga$ docker build . -t test-img
+[+] Building 18.7s (14/14) FINISHED                                             
+ => [internal] load build definition from Dockerfile                       0.0s
+ => => transferring dockerfile: 762B                                       0.0s
+ => [internal] load .dockerignore                                          0.0s
+ => => transferring context: 2B                                            0.0s
+ => [internal] load metadata for docker.io/library/python:3.9              2.0s
+ => CACHED [1/9] FROM docker.io/library/python:3.9@sha256:e8f55f9674b1e0a  0.0s
+ => [internal] load build context                                          0.0s
+ => => transferring context: 923B                                          0.0s
+ => [2/9] RUN pip install click==7.1.2                                     3.3s
+ => [3/9] RUN pip install Flask==1.1.2                                     2.4s
+ => [4/9] RUN pip install itsdangerous==1.1.0                              1.3s 
+ => [5/9] RUN pip install Jinja2==2.11.2                                   1.7s 
+ => [6/9] RUN pip install MarkupSafe==1.1.1                                1.7s 
+ => [7/9] RUN pip install Werkzeug==1.0.1                                  1.9s 
+ => [8/9] ADD . /app                                                       0.0s 
+ => [9/9] RUN apt update                                                   3.8s 
+ => exporting to image                                                     0.4s 
+ => => exporting layers                                                    0.4s 
+ => => writing image sha256:28eab7f01186a7db335594de8442cea7d57efe0f67d03  0.0s 
+ => => naming to docker.io/library/test-img                                0.0s 
+                                                                                
+Use 'docker scan' to run Snyk tests against images to find vulnerabilities and learn how to fix them
+Ingas-MacBook-Pro:gb_docker inga$ docker images
+REPOSITORY                          TAG                          IMAGE ID       CREATED          SIZE
+test-img                            latest                       28eab7f01186   57 seconds ago   943MB
+<none>                              <none>                       6f766cf8a526   9 minutes ago    971MB
+hive-hadoop                         latest                       d760a17b9b55   2 months ago     2.15GB
+alpine/git                          latest                       e2cc08aacc05   4 months ago     25.2MB
+bde2020/hive-metastore-postgresql   2.3.0                        7ab9e8f93813   2 years ago      275MB
+bde2020/hadoop-datanode             2.0.0-hadoop2.7.4-java8      d96116df9f46   3 years ago      874MB
+bde2020/hadoop-namenode             2.0.0-hadoop2.7.4-java8      23d8c9a8ce60   3 years ago      874MB
+bde2020/hive                        2.3.2-postgresql-metastore   87f5c9f4e2df   4 years ago      1.17GB
+shawnzhu/prestodb                   0.181                        7cc5e6c14cc8   4 years ago      3.46GB
+bde2020/cassandra                   latest                       10300ffdcb16   5 years ago      372MB
+Ingas-MacBook-Pro:gb_docker inga$ docker run --name test-hello -d -p 8080:8000 test-img
+cc99df4324628bbe850f0e3cd8272fca4b7b324143f88ec1c70eada24548042c
+Ingas-MacBook-Pro:gb_docker inga$ docker ps
+CONTAINER ID   IMAGE      COMMAND                  CREATED          STATUS          PORTS                    NAMES
+cc99df432462   test-img   "/bin/sh -c 'python …"   22 seconds ago   Up 21 seconds   0.0.0.0:8080->8000/tcp   test-hello
+Ingas-MacBook-Pro:gb_docker inga$ curl 0.0.0.0:8080
+curl: (52) Empty reply from server
+Ingas-MacBook-Pro:gb_docker inga$ 
+Ingas-MacBook-Pro:gb_docker inga$ docker exec -it cc99df4324628bbe850f0e3cd8272fca4b7b324143f88ec1c70eada24548042c /bin/sh
+# curl 0.0.0.0:8080
+Hello, World!# 
+# exit
+Ingas-MacBook-Pro:gb_docker inga$ docker logs cc99df432462
+ * Serving Flask app "app" (lazy loading)
+ * Environment: production
+   WARNING: This is a development server. Do not use it in a production deployment.
+   Use a production WSGI server instead.
+ * Debug mode: off
+ * Running on http://0.0.0.0:8080/ (Press CTRL+C to quit)
+127.0.0.1 - - [25/Feb/2022 20:52:14] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [25/Feb/2022 20:53:58] "GET / HTTP/1.1" 200 -
+Ingas-MacBook-Pro:gb_docker inga$ docker container stop cc99df432462
+cc99df432462
