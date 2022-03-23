@@ -1,0 +1,18 @@
+root@instance-2:~# kubectl create ns kubedoom
+namespace/kubedoom created
+root@instance-2:~# vi kubedoomdepl.yaml
+root@instance-2:~# vi service.yaml
+root@instance-2:~# kubectl apply -f service.yaml
+serviceaccount/kubedoom created
+clusterrolebinding.rbac.authorization.k8s.io/kubedoom created
+root@instance-2:~# kubectl apply -f kubedoomdepl.yaml
+deployment.apps/kubedoom-deployment created
+root@instance-2:~# kubectl get deployment
+NAME            READY   UP-TO-DATE   AVAILABLE   AGE
+my-deployment   2/2     2            2           21m
+root@instance-2:~# kubectl get deplyment -n kubedoom
+error: the server doesn't have a resource type "deplyment"
+root@instance-2:~# kubectl get deployment -n kubedoom
+NAME                  READY   UP-TO-DATE   AVAILABLE   AGE
+kubedoom-deployment   1/1     1            1           103s
+root@instance-2:~# 
