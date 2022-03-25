@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redmine-depl
+spec:
+  replicas: 2
+  selector:
+     matchLabels:
+        app: redmine
+  template:
+    metadata:
+      labels:
+        app: redmine
+    spec:
+      containers:
+        - name: redmine
+          image: redmine:4.1.1
+          ports:
+            - containerPort: 3000
+          envFrom:
+            - configMapRef:
+                name: redmine-config
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redmine-config
+  labels:
+    app: redmine
+data:
+  REDMINE_DB_DATABASE: postgresdb
+  REDMINE_DB_POSTGRES: postgresadmin
+  REDMINE_DB_PASSWORD: admin123

@@ -1,0 +1,136 @@
+root@instance-2:~# kubectl get pods
+NAME                                    READY   STATUS             RESTARTS      AGE
+deploymentpvc-5d9d7746cc-hz4gf          1/1     Running            5 (70m ago)   3d21h
+deploymentpvc-5d9d7746cc-rhjlf          1/1     Running            5 (70m ago)   3d21h
+my-deployment-c4c8f45fc-jmz5h           1/1     Running            8 (70m ago)   3d23h
+my-deployment-c4c8f45fc-tvzdv           1/1     Running            8 (70m ago)   3d23h
+my-nginx-deploy-77bdd9bc7b-g6grc        0/1     ErrImagePull       0             93m
+my-nginx-deploy-77bdd9bc7b-vzx9s        0/1     ImagePullBackOff   0             93m
+my-nginx-deploy-test-84fc49578f-jbf26   1/1     Running            0             67m
+my-nginx-deploy-test-84fc49578f-pld29   1/1     Running            0             67m
+my-replicaset-6fswb                     1/1     Running            8 (70m ago)   3d23h
+my-replicaset-mdpmv                     1/1     Running            8 (70m ago)   4d
+my-replicaset-s5jxh                     1/1     Running            8 (70m ago)   4d
+postgres-7d9c85cdcd-vvqwf               1/1     Running            2 (70m ago)   3d3h
+web-746c8679d4-djjj9                    1/1     Running            0             41m
+root@instance-2:~# kubectl describe pod postgres-7d9c85cdcd-vvqwf | grep IP:
+IP:           172.17.0.5
+  IP:           172.17.0.5
+root@instance-2:~# kubectl describe pod postgres-7d9c85cdcd-vvqwf
+Name:         postgres-7d9c85cdcd-vvqwf
+Namespace:    default
+Priority:     0
+Node:         instance-2/10.156.0.2
+Start Time:   Tue, 22 Mar 2022 15:41:47 +0000
+Labels:       app.kubernetes.io/name=postgres
+              pod-template-hash=7d9c85cdcd
+Annotations:  <none>
+Status:       Running
+IP:           172.17.0.5
+IPs:
+  IP:           172.17.0.5
+Controlled By:  ReplicaSet/postgres-7d9c85cdcd
+Containers:
+  postgres:
+    Container ID:   docker://4bf439984448c329a54ed7cb7411f8a56122220f7e0908ebb3ad0760667363e8
+    Image:          postgres:10.13
+    Image ID:       docker-pullable://postgres@sha256:e3a02efdce3ec64cfdb76a8ff93ae14d3294e47a0203d8230c8853a3890fe340
+    Port:           5432/TCP
+    Host Port:      0/TCP
+    State:          Running
+      Started:      Fri, 25 Mar 2022 18:30:22 +0000
+    Last State:     Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Fri, 25 Mar 2022 17:54:30 +0000
+      Finished:     Fri, 25 Mar 2022 18:29:48 +0000
+    Ready:          True
+    Restart Count:  2
+    Environment Variables from:
+      postgres-config  ConfigMap  Optional: false
+    Environment:       <none>
+    Mounts:
+      /var/lib/postgresql/data from postgredb (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-r8gh6 (ro)
+Conditions:
+  Type              Status
+  Initialized       True 
+  Ready             True 
+  ContainersReady   True 
+  PodScheduled      True 
+Volumes:
+  postgredb:
+    Type:       PersistentVolumeClaim (a reference to a PersistentVolumeClaim in the same namespace)
+    ClaimName:  postgres-pv-claim
+    ReadOnly:   false
+  kube-api-access-r8gh6:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    ConfigMapOptional:       <nil>
+    DownwardAPI:             true
+QoS Class:                   BestEffort
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:                      <none>
+root@instance-2:~# vi postgrnodeport.yaml
+root@instance-2:~# kubectl apply -f postgrnodeport.yaml
+service/database created
+root@instance-2:~# kubectl get svc
+NAME               TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)          AGE
+database           NodePort    10.109.93.104    <none>        5432:30675/TCP   16s
+kubernetes         ClusterIP   10.96.0.1        <none>        443/TCP          4d3h
+my-service         NodePort    10.99.45.53      <none>        80:32079/TCP     81m
+postgres-service   NodePort    10.99.207.31     <none>        80:30113/TCP     9m30s
+web                NodePort    10.103.224.111   <none>        8080:30028/TCP   65m
+root@instance-2:~# vi redmine-deploy.yaml
+root@instance-2:~# kubectl apply redmine-deploy.yaml
+error: must specify one of -f and -k
+root@instance-2:~# kubectl apply -f redmine-deploy.yaml
+deployment.apps/redmine-depl created
+configmap/redmine-config created
+root@instance-2:~# vi redminenodeport.yaml
+root@instance-2:~# kubectl apply -f redminenodeport.yaml
+service/database-redmine created
+root@instance-2:~# minikube service list
+|-------------|------------------|--------------|-------------------------|
+|  NAMESPACE  |       NAME       | TARGET PORT  |           URL           |
+|-------------|------------------|--------------|-------------------------|
+| default     | database         |         5432 | http://10.156.0.2:30675 |
+| default     | database-redmine |         3000 | http://10.156.0.2:31368 |
+| default     | kubernetes       | No node port |
+| default     | my-service       |           80 | http://10.156.0.2:32079 |
+| default     | postgres-service |           80 | http://10.156.0.2:30113 |
+| default     | web              |         8080 | http://10.156.0.2:30028 |
+| kube-system | kube-dns         | No node port |
+|-------------|------------------|--------------|-------------------------|
+root@instance-2:~# kubectl create deployment redm --image=redmine:4.1.1
+deployment.apps/redm created
+root@instance-2:~# kubectl expose deployment redm --type=NodePort --port=3000
+service/redm exposed
+root@instance-2:~# kubectl get service redm
+NAME   TYPE       CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
+redm   NodePort   10.104.223.12   <none>        3000:32665/TCP   19s
+root@instance-2:~# minikube service list
+|-------------|------------------|--------------|-------------------------|
+|  NAMESPACE  |       NAME       | TARGET PORT  |           URL           |
+|-------------|------------------|--------------|-------------------------|
+| default     | database         |         5432 | http://10.156.0.2:30675 |
+| default     | database-redmine |         3000 | http://10.156.0.2:31368 |
+| default     | kubernetes       | No node port |
+| default     | my-service       |           80 | http://10.156.0.2:32079 |
+| default     | postgres-service |           80 | http://10.156.0.2:30113 |
+| default     | redm             |         3000 | http://10.156.0.2:32665 |
+| default     | web              |         8080 | http://10.156.0.2:30028 |
+| kube-system | kube-dns         | No node port |
+|-------------|------------------|--------------|-------------------------|
+root@instance-2:~# vi ingressredmi.yaml
+root@instance-2:~# kubectl apply -f ingressredmi.yaml
+ingress.networking.k8s.io/example-redmine created
+root@instance-2:~# kubectl get ingress
+NAME              CLASS    HOSTS              ADDRESS   PORTS   AGE
+example-ingress   <none>   hello-world.info             80      93m
+example-redmine   <none>   redmine-test                 80      15s
+root@instance-2:~# sudo vi /etc/hosts
+
